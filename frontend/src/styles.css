@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #172126;
+  background: #f6f7f2;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    linear-gradient(135deg, rgba(220, 239, 230, 0.65), rgba(246, 247, 242, 0) 42%),
+    linear-gradient(180deg, #f6f7f2 0%, #eef1ea 100%);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(29, 138, 120, 0.35);
+  outline-offset: 2px;
+}
+
+.card {
+  border: 1px solid rgba(23, 33, 38, 0.09);
+  background: rgba(255, 255, 252, 0.86);
+  box-shadow: 0 18px 45px rgba(23, 33, 38, 0.08);
+}
+
+.field {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #d7dfd6;
+  background: #fffef9;
+  padding: 0.75rem 0.9rem;
+  color: #172126;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #33433d;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 8px;
+  min-height: 2.75rem;
+  padding: 0.7rem 1rem;
+  font-weight: 800;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: #172126;
+  color: #fffef9;
+  box-shadow: 0 14px 24px rgba(23, 33, 38, 0.18);
+}
+
+.btn-secondary {
+  background: #dcefe6;
+  color: #214e46;
+}
+
+.btn-danger {
+  background: #b23a35;
+  color: #fffef9;
+}
+
+.status-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: currentColor;
+}
