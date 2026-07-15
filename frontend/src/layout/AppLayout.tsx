@@ -3,7 +3,7 @@ import { NavLink, Outlet } from "react-router-dom";
 
 const nav = [
   { to: "/", label: "Главная", icon: Home },
-  { to: "/recommendations", label: "AI-план", icon: Activity },
+  { to: "/recommendations", label: "План дня", icon: Activity },
   { to: "/ecg", label: "ЭКГ", icon: FileText },
   { to: "/safety", label: "Безопасность", icon: ShieldCheck },
   { to: "/profile", label: "Профиль", icon: UserRound }
@@ -19,7 +19,6 @@ export function AppLayout() {
           </div>
           <div>
             <p className="font-display text-2xl font-semibold">Caspian Care</p>
-            <p className="text-xs font-bold uppercase tracking-wide text-white/55">Demo AI Mode</p>
           </div>
         </div>
         <nav className="space-y-2" aria-label="Основная навигация">
@@ -39,7 +38,7 @@ export function AppLayout() {
           ))}
         </nav>
         <div className="absolute bottom-6 left-5 right-5 rounded-lg border border-white/10 bg-white/5 p-4 text-sm leading-6 text-white/70">
-          AI-assisted рекомендации не являются медицинским диагнозом.
+          Не является медицинским диагнозом.
         </div>
       </aside>
 

@@ -24,6 +24,12 @@ const initial: CheckInForm = {
   notes: ""
 };
 
+const levelLabel = {
+  high: "высокая",
+  moderate: "средняя",
+  low: "низкая"
+} as const;
+
 function Slider({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
   return (
     <label className="rounded-lg border border-line bg-white/65 p-4">
@@ -47,8 +53,8 @@ function ResultSection({ result }: { result: RecommendationResult }) {
     <div className="space-y-5">
       <div className="card rounded-lg p-6">
         <div className="flex flex-wrap items-center gap-3">
-          <StatusBadge value={result.readiness.level} label={`Готовность: ${result.readiness.level}`} />
-          <StatusBadge value={result.movement.intensity} label={`Нагрузка: ${result.movement.intensity}`} />
+          <StatusBadge value={result.readiness.level} label={`Готовность: ${levelLabel[result.readiness.level]}`} />
+          <StatusBadge value={result.movement.intensity} label={`Нагрузка: ${levelLabel[result.movement.intensity]}`} />
         </div>
         <h2 className="mt-5 font-display text-3xl font-semibold text-ink">{result.today_focus}</h2>
         <p className="mt-3 text-base leading-7 text-muted">{result.summary}</p>
@@ -88,7 +94,7 @@ export function RecommendationsPage() {
     onSuccess: (data) => {
       setLatestResult(data.structured_result);
       queryClient.invalidateQueries({ queryKey: ["recommendations"] });
-      toast.success("AI-план создан");
+      toast.success("План готов");
     },
     onError: (error) => toast.error(error.message)
   });
@@ -102,21 +108,19 @@ export function RecommendationsPage() {
 
   return (
     <section>
-      <PageHeader title="AI-рекомендации" eyebrow="Daily Check-In">
-        <StatusBadge value="moderate" label="Demo AI Mode" />
-      </PageHeader>
+      <PageHeader title="План дня" eyebrow="Сегодняшнее состояние" />
       <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
         <form onSubmit={submit} className="card rounded-lg p-6">
           <h2 className="text-xl font-black text-ink">Как вы сегодня?</h2>
           <div className="mt-5 grid gap-4">
-            <label><span className="field-label">Sleep hours</span><input className="field" type="number" step="0.5" value={form.sleep_hours} onChange={(e) => setForm({ ...form, sleep_hours: Number(e.target.value) })} /></label>
-            <Slider label="Sleep quality" value={form.sleep_quality} onChange={(value) => setForm({ ...form, sleep_quality: value })} />
-            <Slider label="Energy" value={form.energy_level} onChange={(value) => setForm({ ...form, energy_level: value })} />
-            <Slider label="Stress" value={form.stress_level} onChange={(value) => setForm({ ...form, stress_level: value })} />
-            <Slider label="Muscle soreness" value={form.muscle_soreness} onChange={(value) => setForm({ ...form, muscle_soreness: value })} />
-            <label><span className="field-label">Pain or discomfort optional</span><input className="field" value={form.pain_or_discomfort ?? ""} onChange={(e) => setForm({ ...form, pain_or_discomfort: e.target.value })} /></label>
-            <label><span className="field-label">Planned activity optional</span><input className="field" value={form.planned_activity ?? ""} onChange={(e) => setForm({ ...form, planned_activity: e.target.value })} /></label>
-            <label><span className="field-label">Additional notes optional</span><textarea className="field min-h-24" value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></label>
+            <label><span className="field-label">Сон, часов</span><input className="field" type="number" step="0.5" value={form.sleep_hours} onChange={(e) => setForm({ ...form, sleep_hours: Number(e.target.value) })} /></label>
+            <Slider label="Качество сна" value={form.sleep_quality} onChange={(value) => setForm({ ...form, sleep_quality: value })} />
+            <Slider label="Энергия" value={form.energy_level} onChange={(value) => setForm({ ...form, energy_level: value })} />
+            <Slider label="Стресс" value={form.stress_level} onChange={(value) => setForm({ ...form, stress_level: value })} />
+            <Slider label="Усталость мышц" value={form.muscle_soreness} onChange={(value) => setForm({ ...form, muscle_soreness: value })} />
+            <label><span className="field-label">Боль или дискомфорт</span><input className="field" value={form.pain_or_discomfort ?? ""} onChange={(e) => setForm({ ...form, pain_or_discomfort: e.target.value })} /></label>
+            <label><span className="field-label">Планируемая активность</span><input className="field" value={form.planned_activity ?? ""} onChange={(e) => setForm({ ...form, planned_activity: e.target.value })} /></label>
+            <label><span className="field-label">Заметки</span><textarea className="field min-h-24" value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></label>
           </div>
           <button className="btn btn-primary mt-5 w-full" type="submit" disabled={generate.isPending}>
             <Sparkles className="h-5 w-5" />
@@ -126,11 +130,11 @@ export function RecommendationsPage() {
 
         <div className="space-y-5">
           {generate.isPending ? (
-            <LoadingProgress steps={["Анализируем ваш профиль", "Учитываем сегодняшний check-in", "Формируем персональные рекомендации"]} />
+            <LoadingProgress steps={["Смотрим профиль", "Учитываем состояние", "Готовим план"]} />
           ) : activeResult ? (
             <ResultSection result={activeResult} />
           ) : (
-            <EmptyState icon={ShieldAlert} title="План еще не создан" text="Заполните короткий check-in, чтобы получить структурированные рекомендации." />
+            <EmptyState icon={ShieldAlert} title="План еще не создан" text="Заполните форму слева." />
           )}
           <div className="card rounded-lg p-5">
             <h3 className="mb-4 text-lg font-black text-ink">История</h3>
@@ -141,7 +145,7 @@ export function RecommendationsPage() {
                   <p className="text-sm text-muted">{formatDate(item.created_at)}</p>
                 </div>
               ))}
-              {!recommendations.data?.length ? <p className="text-sm text-muted">История появится после первой генерации.</p> : null}
+              {!recommendations.data?.length ? <p className="text-sm text-muted">История появится после первого плана.</p> : null}
             </div>
           </div>
         </div>

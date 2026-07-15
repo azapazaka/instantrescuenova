@@ -16,58 +16,56 @@ class MockAIProvider:
         if sleep < 6 or energy <= 4 or stress >= 8 or has_pain:
             readiness = "low"
             intensity = "low"
-            focus = "восстановление и мягкое движение"
+            focus = "восстановление"
         elif energy >= 8 and stress <= 4 and soreness <= 4:
             readiness = "high"
             intensity = "moderate"
-            focus = "уверенная активность без перегруза"
+            focus = "активный день"
         else:
             readiness = "moderate"
             intensity = "moderate"
-            focus = "сбалансированная нагрузка и контроль усталости"
+            focus = "умеренная нагрузка"
 
         safety = None
-        avoid = ["Интенсивные интервалы без разминки", "Тренировку через боль"]
+        avoid = ["Интенсивные интервалы", "Тренировку через боль"]
         if has_pain:
             safety = (
-                "Вы отметили дискомфорт. Сегодня лучше выбрать щадящую активность "
-                "и обсудить устойчивую или усиливающуюся боль со специалистом."
+                "Есть дискомфорт. Выберите щадящую нагрузку."
             )
-            avoid.append("Упражнения, усиливающие дискомфорт")
+            avoid.append("Движения, усиливающие боль")
 
         return HealthRecommendationResult(
             summary=(
-                f"Сегодня оптимален режим: {focus}. План учитывает сон {sleep:g} ч, "
-                f"энергию {energy}/10 и стресс {stress}/10."
+                f"Фокус на сегодня: {focus}. Сон {sleep:g} ч, энергия {energy}/10, стресс {stress}/10."
             ),
             readiness={
                 "level": readiness,
-                "explanation": "Оценка основана на сне, энергии, стрессе и мышечной усталости.",
+                "explanation": "По сну, энергии, стрессу и усталости.",
             },
             today_focus=focus.capitalize(),
             movement={
-                "title": "Движение на сегодня",
-                "recommendation": "30-40 минут ходьбы, mobility или легкая силовая работа.",
+                "title": "Движение",
+                "recommendation": "25-40 минут ходьбы или легкой тренировки.",
                 "intensity": intensity,
                 "duration": "25-40 минут",
-                "reasoning": "Такой объем поддержит активность без лишней нагрузки на восстановление.",
+                "reasoning": "Достаточно для тонуса без перегруза.",
             },
             recovery={
-                "recommendation": "Добавьте 10 минут дыхания, растяжку и спокойный вечерний режим.",
-                "reasoning": "Это снижает нагрузку на нервную систему и помогает качеству сна.",
+                "recommendation": "10 минут растяжки и спокойный вечер.",
+                "reasoning": "Поможет восстановиться.",
             },
             nutrition={
-                "recommendation": "Держите воду рядом и добавьте белок к основным приемам пищи.",
-                "reasoning": "Гидратация и белок поддерживают энергию и восстановление.",
+                "recommendation": "Вода в течение дня, белок в основные приемы пищи.",
+                "reasoning": "Поддержит энергию.",
             },
             sleep={
                 "recommendation": "Поставьте цель лечь на 30 минут раньше обычного.",
-                "reasoning": "Небольшой сдвиг режима проще удержать и он заметно влияет на восстановление.",
+                "reasoning": "Это простой шаг для восстановления.",
             },
             things_to_avoid=avoid,
             important_notes=[
                 "Это не медицинский диагноз.",
-                "При выраженных симптомах обратитесь к врачу или в экстренную службу.",
+                "При сильных симптомах обратитесь к врачу.",
             ],
             medical_safety_message=safety,
         )
@@ -75,25 +73,24 @@ class MockAIProvider:
     def analyze_ecg_document(self, filename: str, text: str, page_count: int) -> ECGAnalysisResult:
         limited_text = text[:1200].strip()
         summary = (
-            "Документ распознан как PDF с результатами ЭКГ. В mock-режиме система "
-            "показывает безопасный пример структурированного объяснения."
+            "PDF с результатами ЭКГ принят. Ниже краткий разбор документа."
         )
         if limited_text:
-            summary += " В документе найден текстовый слой, поэтому часть информации можно читать напрямую."
+            summary += " В файле найден текстовый слой."
 
         return ECGAnalysisResult(
             document_type="ECG report",
             analysis_status="completed",
             document_summary=summary,
             detected_measurements=[
-                {"name": "Heart rate", "value": "Не удалось надежно определить из документа", "source_page": 1},
+                {"name": "Пульс", "value": "Не удалось надежно определить из документа", "source_page": 1},
                 {"name": "QRS", "value": "Не удалось надежно определить из документа", "source_page": 1},
                 {"name": "QTc", "value": "Не удалось надежно определить из документа", "source_page": 1},
             ],
             observations=[
                 {
                     "title": "Требуется врачебная интерпретация",
-                    "description": "AI-assisted обзор помогает подготовить вопросы, но не заменяет заключение специалиста.",
+                    "description": "Разбор помогает подготовить вопросы, но не заменяет заключение специалиста.",
                     "importance": "moderate",
                     "source_page": 1,
                 }
@@ -101,13 +98,13 @@ class MockAIProvider:
             possible_patterns=[
                 {
                     "name": "Недостаточно данных для уверенного паттерна",
-                    "explanation": "Mock-режим не делает диагностических выводов и не придумывает показатели.",
+                    "explanation": "Диагностический вывод не формируется.",
                     "confidence": "low",
                 }
             ],
             signal_or_document_quality={
                 "level": "fair" if page_count else "poor",
-                "explanation": f"PDF содержит {page_count} стр.; исходный файл не сохраняется после анализа.",
+                "explanation": f"Страниц: {page_count}.",
             },
             recommended_next_steps=[
                 "Сравните результат с официальным заключением ЭКГ.",
@@ -119,8 +116,8 @@ class MockAIProvider:
             ],
             urgent_flags=[],
             limitations=[
-                "Это AI-assisted объяснение, а не диагноз.",
-                "Mock-режим не анализирует изображение как реальная multimodal модель.",
+                "Это не диагноз.",
+                "Качество разбора зависит от качества PDF.",
                 "Показатели не извлекаются, если они не видны надежно.",
             ],
         )

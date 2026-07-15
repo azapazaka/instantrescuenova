@@ -11,12 +11,18 @@ import { api } from "../services/api";
 import type { ECGAnalysis } from "../types";
 import { formatDate } from "../utils/format";
 
+const importanceLabel: Record<string, string> = {
+  low: "низкая",
+  moderate: "средняя",
+  high: "высокая"
+};
+
 function ECGReport({ analysis }: { analysis: ECGAnalysis }) {
   const result = analysis.structured_result;
   return (
     <article className="space-y-5">
       <div className="card rounded-lg p-6">
-        <StatusBadge value={analysis.status} label="Analysis completed" />
+        <StatusBadge value={analysis.status} label="Готово" />
         <h2 className="mt-4 font-display text-3xl font-semibold text-ink">Общий обзор</h2>
         <p className="mt-3 leading-7 text-muted">{result.document_summary}</p>
       </div>
@@ -25,16 +31,16 @@ function ECGReport({ analysis }: { analysis: ECGAnalysis }) {
           <div key={metric.name} className="card rounded-lg p-5">
             <p className="text-sm font-bold text-muted">{metric.name}</p>
             <p className="mt-2 text-lg font-black text-ink">{metric.value}</p>
-            <p className="mt-2 text-xs font-bold text-muted">Page {metric.source_page ?? "n/a"}</p>
+            <p className="mt-2 text-xs font-bold text-muted">Стр. {metric.source_page ?? "не указана"}</p>
           </div>
         ))}
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="card rounded-lg p-5">
-          <h3 className="mb-3 text-lg font-black text-ink">Наблюдения AI</h3>
+          <h3 className="mb-3 text-lg font-black text-ink">Наблюдения</h3>
           {result.observations.map((item) => (
             <div key={item.title} className="mb-3 rounded-lg border border-line bg-white/65 p-4">
-              <StatusBadge value={item.importance} label={item.importance} />
+              <StatusBadge value={item.importance} label={importanceLabel[item.importance] ?? item.importance} />
               <p className="mt-3 font-extrabold text-ink">{item.title}</p>
               <p className="mt-1 text-sm leading-6 text-muted">{item.description}</p>
             </div>
@@ -66,7 +72,7 @@ export function ECGPage() {
     onSuccess: (data) => {
       setSelected(data);
       queryClient.invalidateQueries({ queryKey: ["ecg"] });
-      toast.success("ECG анализ готов");
+      toast.success("Анализ готов");
     },
     onError: (error) => toast.error(error.message)
   });
@@ -84,15 +90,15 @@ export function ECGPage() {
 
   return (
     <section>
-      <PageHeader title="Анализ ЭКГ" eyebrow="AI-assisted PDF review" />
+      <PageHeader title="Анализ ЭКГ" eyebrow="Разбор PDF" />
       <div className="grid gap-5 xl:grid-cols-[0.85fr_1.15fr]">
         <aside className="space-y-5">
           <div className="card rounded-lg p-6">
-            <p className="text-sm leading-6 text-muted">Загрузите PDF с результатами ЭКГ, чтобы получить понятное AI-assisted объяснение документа.</p>
+            <p className="text-sm leading-6 text-muted">Загрузите PDF с результатами ЭКГ.</p>
             <label className="mt-5 flex min-h-52 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-line bg-white/60 p-6 text-center hover:border-teal">
               <Upload className="mb-3 h-9 w-9 text-teal" />
               <span className="font-extrabold text-ink">{file ? file.name : "Выберите или перетащите PDF"}</span>
-              {file ? <span className="mt-1 text-sm text-muted">{(file.size / 1024 / 1024).toFixed(2)} MB</span> : <span className="mt-1 text-sm text-muted">Анализ не начнется автоматически</span>}
+              {file ? <span className="mt-1 text-sm text-muted">{(file.size / 1024 / 1024).toFixed(2)} MB</span> : <span className="mt-1 text-sm text-muted">PDF до 20 MB</span>}
               <input className="sr-only" type="file" accept="application/pdf,.pdf" onChange={pick} />
             </label>
             {file ? (
@@ -110,7 +116,7 @@ export function ECGPage() {
               {history.data?.map((item) => (
                 <button key={item.id} className="w-full rounded-lg border border-line bg-white/65 p-4 text-left hover:border-teal" onClick={() => setSelected(item)}>
                   <p className="font-extrabold text-ink">{item.original_filename}</p>
-                  <p className="text-sm text-muted">{formatDate(item.created_at)} · {item.status}</p>
+                  <p className="text-sm text-muted">{formatDate(item.created_at)} · готово</p>
                 </button>
               ))}
               {!history.data?.length ? <EmptyState icon={FileText} title="История пуста" text="Первый отчет появится после анализа PDF." /> : null}
@@ -118,11 +124,11 @@ export function ECGPage() {
           </div>
         </aside>
         {analyze.isPending ? (
-          <LoadingProgress steps={["Загружаем документ", "Читаем PDF", "Подготавливаем страницы", "AI анализирует ЭКГ", "Формируем отчет"]} />
+          <LoadingProgress steps={["Загружаем документ", "Читаем PDF", "Готовим отчет"]} />
         ) : active ? (
           <ECGReport analysis={active} />
         ) : (
-          <EmptyState icon={FileText} title="Выберите PDF" text="Система покажет общий обзор, найденные показатели, вопросы врачу и ограничения анализа." />
+          <EmptyState icon={FileText} title="Выберите PDF" text="Появятся обзор, показатели и вопросы врачу." />
         )}
       </div>
     </section>
