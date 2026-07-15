@@ -21,7 +21,7 @@ export function SafetyPage() {
   const contacts = useQuery({ queryKey: ["contacts"], queryFn: api.listContacts });
   const devices = useQuery({ queryKey: ["devices"], queryFn: api.listDevices });
   const incidents = useQuery({ queryKey: ["incidents"], queryFn: api.listIncidents });
-  const [contactForm, setContactForm] = useState({ name: "", relationship: "" });
+  const [contactForm, setContactForm] = useState({ name: "", relationship: "", telegram_username: "" });
 
   const refreshSafety = () => {
     queryClient.invalidateQueries({ queryKey: ["contacts"] });
@@ -32,7 +32,7 @@ export function SafetyPage() {
   const addContact = useMutation({
     mutationFn: api.addContact,
     onSuccess: () => {
-      setContactForm({ name: "", relationship: "" });
+      setContactForm({ name: "", relationship: "", telegram_username: "" });
       refreshSafety();
       toast.success("Контакт добавлен");
     },
@@ -83,7 +83,7 @@ export function SafetyPage() {
 
   function submitContact(event: FormEvent) {
     event.preventDefault();
-    if (!contactForm.name.trim() || !contactForm.relationship.trim()) return;
+    if (!contactForm.name.trim() || !contactForm.relationship.trim() || !contactForm.telegram_username.trim()) return;
     addContact.mutate(contactForm);
   }
 
@@ -123,9 +123,10 @@ export function SafetyPage() {
         <div className="space-y-5">
           <form onSubmit={submitContact} className="card rounded-lg p-6">
             <h2 className="text-xl font-black text-ink">Близкие контакты</h2>
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <div className="mt-5 grid gap-4 md:grid-cols-3">
               <label><span className="field-label">Имя</span><input className="field" value={contactForm.name} onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })} /></label>
               <label><span className="field-label">Кем приходится</span><input className="field" value={contactForm.relationship} onChange={(e) => setContactForm({ ...contactForm, relationship: e.target.value })} /></label>
+              <label><span className="field-label">Telegram username</span><input className="field" placeholder="@username" value={contactForm.telegram_username} onChange={(e) => setContactForm({ ...contactForm, telegram_username: e.target.value })} /></label>
             </div>
             <button className="btn btn-primary mt-4 w-full" type="submit" disabled={addContact.isPending}>
               <Plus className="h-5 w-5" /> Добавить контакт
@@ -140,7 +141,7 @@ export function SafetyPage() {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="font-extrabold text-ink">{contact.name}</p>
-                      <p className="text-sm text-muted">{contact.relationship}</p>
+                      <p className="text-sm text-muted">{contact.relationship}{contact.telegram_username ? ` · ${contact.telegram_username}` : ""}</p>
                     </div>
                     <StatusBadge value={contact.status} label={contact.status === "connected" ? "Подключен" : "Ожидает"} />
                   </div>

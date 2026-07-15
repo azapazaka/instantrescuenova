@@ -77,6 +77,7 @@ class EmergencyContact(Base):
     user_id: Mapped[int] = mapped_column(Integer, default=1, index=True)
     name: Mapped[str] = mapped_column(String(120))
     relationship: Mapped[str] = mapped_column(String(120))
+    telegram_username: Mapped[str | None] = mapped_column(String(120), nullable=True)
     telegram_chat_id: Mapped[str | None] = mapped_column(String(120), nullable=True)
     pairing_code: Mapped[str] = mapped_column(String(12), unique=True, index=True)
     status: Mapped[str] = mapped_column(String(40), default="waiting")

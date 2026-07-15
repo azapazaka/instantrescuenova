@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import ecg_analysis, profile, recommendations, safety
 from app.core.config import get_settings
-from app.core.database import Base, SessionLocal, engine
+from app.core.database import Base, SessionLocal, engine, ensure_schema_compatibility
 from app.core.errors import api_error_response
 from app.schemas.common import HealthResponse
 from app.services.seed import ensure_demo_profile
@@ -29,6 +29,7 @@ async def http_exception_handler(_, exc: HTTPException):
 @app.on_event("startup")
 def startup():
     Base.metadata.create_all(bind=engine)
+    ensure_schema_compatibility()
     db = SessionLocal()
     try:
         ensure_demo_profile(db)

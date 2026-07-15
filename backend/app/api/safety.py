@@ -34,6 +34,7 @@ def add_contact(payload: EmergencyContactCreate, db: Session = Depends(get_db)):
         user_id=1,
         name=payload.name,
         relationship=payload.relationship,
+        telegram_username=payload.telegram_username,
         pairing_code=generate_pairing_code(),
         status="waiting",
     )

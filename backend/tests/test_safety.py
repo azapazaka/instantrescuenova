@@ -10,6 +10,24 @@ def test_create_contact_generates_pairing_code(client):
     assert len(data["pairing_code"]) == 6
 
 
+def test_create_contact_saves_telegram_username(client):
+    response = client.post(
+        "/api/emergency-contacts",
+        json={
+            "name": "Сестра",
+            "relationship": "Семья",
+            "telegram_username": "@sister_care",
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["telegram_username"] == "@sister_care"
+
+    history = client.get("/api/emergency-contacts")
+    assert history.json()[0]["telegram_username"] == "@sister_care"
+
+
 def test_device_event_requires_valid_token(client):
     created = client.post("/api/devices", json={"name": "Demo Band"})
     device = created.json()

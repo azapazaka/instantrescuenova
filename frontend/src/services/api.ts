@@ -46,7 +46,7 @@ export const api = {
   },
   listECGAnalyses: () => request<ECGAnalysis[]>("/api/ecg-analyses"),
   listContacts: () => request<EmergencyContact[]>("/api/emergency-contacts"),
-  addContact: (payload: { name: string; relationship: string }) =>
+  addContact: (payload: { name: string; relationship: string; telegram_username: string }) =>
     request<EmergencyContact>("/api/emergency-contacts", { method: "POST", body: JSON.stringify(payload) }),
   deleteContact: (id: number) => request<{ ok: boolean; message: string }>(`/api/emergency-contacts/${id}`, { method: "DELETE" }),
   testContact: (id: number) => request<{ ok: boolean; message: string }>(`/api/emergency-contacts/${id}/test`, { method: "POST" }),

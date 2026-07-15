@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from app.core.config import get_settings
@@ -20,3 +20,15 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def ensure_schema_compatibility():
+    if not settings.database_url.startswith("sqlite"):
+        return
+    inspector = inspect(engine)
+    if "emergency_contacts" not in inspector.get_table_names():
+        return
+    columns = {column["name"] for column in inspector.get_columns("emergency_contacts")}
+    with engine.begin() as connection:
+        if "telegram_username" not in columns:
+            connection.execute(text("ALTER TABLE emergency_contacts ADD COLUMN telegram_username VARCHAR(120)"))

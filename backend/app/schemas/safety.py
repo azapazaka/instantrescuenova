@@ -8,6 +8,7 @@ from app.schemas.common import OrmModel
 class EmergencyContactCreate(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     relationship: str = Field(min_length=1, max_length=120)
+    telegram_username: str | None = Field(default=None, max_length=120)
 
 
 class EmergencyContactRead(OrmModel):
@@ -15,6 +16,7 @@ class EmergencyContactRead(OrmModel):
     user_id: int
     name: str
     relationship: str
+    telegram_username: str | None
     telegram_chat_id: str | None
     pairing_code: str
     status: str

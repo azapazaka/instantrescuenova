@@ -85,6 +85,7 @@ export type EmergencyContact = {
   user_id: number;
   name: string;
   relationship: string;
+  telegram_username: string | null;
   telegram_chat_id: string | null;
   pairing_code: string;
   status: string;
