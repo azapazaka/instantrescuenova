@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "sonner";
 
 import App from "./App";
+import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import "./styles.css";
 
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
@@ -41,15 +42,23 @@ const queryClient = new QueryClient({
   }
 });
 
+function ThemedToaster() {
+  const { theme } = useTheme();
+
+  return <Toaster richColors position="top-right" theme={theme} />;
+}
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AppErrorBoundary>
-          <App />
-        </AppErrorBoundary>
-        <Toaster richColors position="top-right" />
-      </BrowserRouter>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AppErrorBoundary>
+            <App />
+          </AppErrorBoundary>
+          <ThemedToaster />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ThemeProvider>
   </React.StrictMode>
 );

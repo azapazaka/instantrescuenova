@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
+import { ThemeToggle } from "../components/ThemeToggle";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../services/api";
 import { supabase } from "../services/supabase";
@@ -84,110 +85,113 @@ export function SignUpPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-5 py-10">
-      <div className="mb-7 text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-spruce text-white">
-          <HeartPulse className="h-9 w-9" />
+    <>
+      <ThemeToggle className="fixed right-4 top-4 z-20" />
+      <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-5 py-10">
+        <div className="mb-7 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-spruce text-white">
+            <HeartPulse className="h-9 w-9" />
+          </div>
+          <h1 className="font-display text-4xl font-semibold text-ink">Регистрация</h1>
         </div>
-        <h1 className="font-display text-4xl font-semibold text-ink">Регистрация</h1>
-      </div>
 
-      <form onSubmit={onSubmit} className="card rounded-2xl p-6">
-        <label className="field-label" htmlFor="name">
-          Как вас зовут
-        </label>
-        <input id="name" className="field mb-5 text-lg" required value={form.name} onChange={update("name")} />
+        <form onSubmit={onSubmit} className="card rounded-2xl p-6">
+          <label className="field-label" htmlFor="name">
+            Как вас зовут
+          </label>
+          <input id="name" className="field mb-5 text-lg" required value={form.name} onChange={update("name")} />
 
-        <label className="field-label" htmlFor="email">
-          Электронная почта
-        </label>
-        <input
-          id="email"
-          type="email"
-          className="field mb-5 text-lg"
-          autoComplete="email"
-          required
-          value={form.email}
-          onChange={update("email")}
-        />
+          <label className="field-label" htmlFor="email">
+            Электронная почта
+          </label>
+          <input
+            id="email"
+            type="email"
+            className="field mb-5 text-lg"
+            autoComplete="email"
+            required
+            value={form.email}
+            onChange={update("email")}
+          />
 
-        <label className="field-label" htmlFor="password">
-          Пароль
-        </label>
-        <input
-          id="password"
-          type="password"
-          className="field text-lg"
-          autoComplete="new-password"
-          required
-          minLength={8}
-          value={form.password}
-          onChange={update("password")}
-        />
-        <p className="mb-6 mt-2 text-sm text-muted">Не короче 8 символов.</p>
+          <label className="field-label" htmlFor="password">
+            Пароль
+          </label>
+          <input
+            id="password"
+            type="password"
+            className="field text-lg"
+            autoComplete="new-password"
+            required
+            minLength={8}
+            value={form.password}
+            onChange={update("password")}
+          />
+          <p className="mb-6 mt-2 text-sm text-muted">Не короче 8 символов.</p>
 
-        <div className="mb-5 rounded-xl border border-line bg-mint/40 p-4">
-          <p className="font-extrabold text-spruce">Близкий человек</p>
-          <p className="mt-1 text-sm leading-6 text-muted">
-            Ему придёт уведомление в Telegram, если система заметит падение. Это можно
-            изменить позже.
+          <div className="mb-5 rounded-xl border border-line bg-mint/40 p-4">
+            <p className="font-extrabold text-spruce">Близкий человек</p>
+            <p className="mt-1 text-sm leading-6 text-muted">
+              Ему придёт уведомление в Telegram, если система заметит падение. Это можно
+              изменить позже.
+            </p>
+          </div>
+
+          <label className="field-label" htmlFor="relativeName">
+            Имя близкого
+          </label>
+          <input
+            id="relativeName"
+            className="field mb-5 text-lg"
+            value={form.relativeName}
+            onChange={update("relativeName")}
+          />
+
+          <label className="field-label" htmlFor="relativeRelationship">
+            Кем приходится
+          </label>
+          <select
+            id="relativeRelationship"
+            className="field mb-5 text-lg"
+            value={form.relativeRelationship}
+            onChange={update("relativeRelationship")}
+          >
+            <option>Родственник</option>
+            <option>Сын</option>
+            <option>Дочь</option>
+            <option>Супруг(а)</option>
+            <option>Внук(чка)</option>
+            <option>Сосед</option>
+            <option>Опекун</option>
+          </select>
+
+          <label className="field-label" htmlFor="relativeTelegram">
+            Telegram близкого
+          </label>
+          <input
+            id="relativeTelegram"
+            className="field text-lg"
+            placeholder="@username"
+            value={form.relativeTelegram}
+            onChange={update("relativeTelegram")}
+          />
+          <p className="mb-6 mt-2 text-sm text-muted">
+            После регистрации мы покажем код, который он отправит нашему боту.
           </p>
-        </div>
 
-        <label className="field-label" htmlFor="relativeName">
-          Имя близкого
-        </label>
-        <input
-          id="relativeName"
-          className="field mb-5 text-lg"
-          value={form.relativeName}
-          onChange={update("relativeName")}
-        />
+          <button type="submit" className="btn btn-primary w-full text-lg" disabled={busy}>
+            <UserPlus className="h-5 w-5" />
+            {busy ? "Создаём…" : "Создать аккаунт"}
+          </button>
+        </form>
 
-        <label className="field-label" htmlFor="relativeRelationship">
-          Кем приходится
-        </label>
-        <select
-          id="relativeRelationship"
-          className="field mb-5 text-lg"
-          value={form.relativeRelationship}
-          onChange={update("relativeRelationship")}
-        >
-          <option>Родственник</option>
-          <option>Сын</option>
-          <option>Дочь</option>
-          <option>Супруг(а)</option>
-          <option>Внук(чка)</option>
-          <option>Сосед</option>
-          <option>Опекун</option>
-        </select>
-
-        <label className="field-label" htmlFor="relativeTelegram">
-          Telegram близкого
-        </label>
-        <input
-          id="relativeTelegram"
-          className="field text-lg"
-          placeholder="@username"
-          value={form.relativeTelegram}
-          onChange={update("relativeTelegram")}
-        />
-        <p className="mb-6 mt-2 text-sm text-muted">
-          После регистрации мы покажем код, который он отправит нашему боту.
+        <p className="mt-6 text-center text-base text-muted">
+          Уже есть аккаунт?{" "}
+          <Link to="/signin" className="font-extrabold text-teal underline underline-offset-4">
+            Войти
+          </Link>
         </p>
-
-        <button type="submit" className="btn btn-primary w-full text-lg" disabled={busy}>
-          <UserPlus className="h-5 w-5" />
-          {busy ? "Создаём…" : "Создать аккаунт"}
-        </button>
-      </form>
-
-      <p className="mt-6 text-center text-base text-muted">
-        Уже есть аккаунт?{" "}
-        <Link to="/signin" className="font-extrabold text-teal underline underline-offset-4">
-          Войти
-        </Link>
-      </p>
-    </main>
+      </main>
+    </>
   );
 }

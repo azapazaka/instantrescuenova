@@ -3,12 +3,57 @@
 @tailwind utilities;
 
 :root {
-  color: #172126;
-  background: #f6f7f2;
+  --color-shell: 246 247 242;
+  --color-ink: 23 33 38;
+  --color-muted: 102 117 111;
+  --color-line: 221 228 220;
+  --color-spruce: 33 78 70;
+  --color-teal: 29 138 120;
+  --color-mint: 220 239 230;
+  --color-ai: 83 104 199;
+  --color-aisoft: 231 235 255;
+  --color-amber: 184 121 16;
+  --color-emergency: 178 58 53;
+  --surface-body-a: rgba(220, 239, 230, 0.65);
+  --surface-body-b: rgba(246, 247, 242, 0);
+  --surface-body-c: #f6f7f2;
+  --surface-body-d: #eef1ea;
+  --surface-card: rgba(255, 255, 252, 0.86);
+  --surface-card-strong: rgba(255, 255, 252, 0.95);
+  --surface-field: #fffef9;
+  --surface-soft: rgba(255, 255, 255, 0.65);
+  --shadow-calm-color: rgba(23, 33, 38, 0.08);
+  color: rgb(var(--color-ink));
+  background: rgb(var(--color-shell));
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color-scheme: light;
+}
+
+.dark {
+  --color-shell: 13 18 21;
+  --color-ink: 238 244 241;
+  --color-muted: 163 177 171;
+  --color-line: 49 63 59;
+  --color-spruce: 91 174 156;
+  --color-teal: 62 204 179;
+  --color-mint: 31 62 55;
+  --color-ai: 154 168 255;
+  --color-aisoft: 34 42 72;
+  --color-amber: 238 177 75;
+  --color-emergency: 242 111 103;
+  --surface-body-a: rgba(29, 138, 120, 0.14);
+  --surface-body-b: rgba(13, 18, 21, 0);
+  --surface-body-c: #0d1215;
+  --surface-body-d: #151d20;
+  --surface-card: rgba(22, 30, 33, 0.88);
+  --surface-card-strong: rgba(20, 28, 31, 0.95);
+  --surface-field: #10181b;
+  --surface-soft: rgba(255, 255, 255, 0.07);
+  --shadow-calm-color: rgba(0, 0, 0, 0.32);
+  color-scheme: dark;
 }
 
 * {
@@ -20,8 +65,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background:
-    linear-gradient(135deg, rgba(220, 239, 230, 0.65), rgba(246, 247, 242, 0) 42%),
-    linear-gradient(180deg, #f6f7f2 0%, #eef1ea 100%);
+    linear-gradient(135deg, var(--surface-body-a), var(--surface-body-b) 42%),
+    linear-gradient(180deg, var(--surface-body-c) 0%, var(--surface-body-d) 100%);
 }
 
 button,
@@ -41,18 +86,18 @@ select:focus-visible {
 }
 
 .card {
-  border: 1px solid rgba(23, 33, 38, 0.09);
-  background: rgba(255, 255, 252, 0.86);
-  box-shadow: 0 18px 45px rgba(23, 33, 38, 0.08);
+  border: 1px solid rgb(var(--color-line) / 0.9);
+  background: var(--surface-card);
+  box-shadow: 0 18px 45px var(--shadow-calm-color);
 }
 
 .field {
   width: 100%;
   border-radius: 8px;
-  border: 1px solid #d7dfd6;
-  background: #fffef9;
+  border: 1px solid rgb(var(--color-line));
+  background: var(--surface-field);
   padding: 0.75rem 0.9rem;
-  color: #172126;
+  color: rgb(var(--color-ink));
 }
 
 .field-label {
@@ -60,7 +105,7 @@ select:focus-visible {
   margin-bottom: 0.45rem;
   font-size: 0.88rem;
   font-weight: 700;
-  color: #33433d;
+  color: rgb(var(--color-ink) / 0.84);
 }
 
 .btn {
@@ -80,19 +125,19 @@ select:focus-visible {
 }
 
 .btn-primary {
-  background: #172126;
-  color: #fffef9;
-  box-shadow: 0 14px 24px rgba(23, 33, 38, 0.18);
+  background: rgb(var(--color-ink));
+  color: rgb(var(--color-shell));
+  box-shadow: 0 14px 24px rgb(var(--color-ink) / 0.18);
 }
 
 .btn-secondary {
-  background: #dcefe6;
-  color: #214e46;
+  background: rgb(var(--color-mint));
+  color: rgb(var(--color-spruce));
 }
 
 .btn-danger {
-  background: #b23a35;
-  color: #fffef9;
+  background: rgb(var(--color-emergency));
+  color: rgb(var(--color-shell));
 }
 
 .status-dot {
@@ -100,4 +145,29 @@ select:focus-visible {
   height: 0.55rem;
   border-radius: 999px;
   background: currentColor;
+}
+
+.dark .bg-white,
+.dark .bg-white\/95,
+.dark .bg-white\/70,
+.dark .bg-white\/65,
+.dark .bg-white\/60,
+.dark .bg-white\/55 {
+  background-color: var(--surface-card-strong);
+}
+
+.dark .bg-white\/25 {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.dark .bg-white\/15 {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.dark .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark .shadow-calm {
+  box-shadow: 0 18px 45px var(--shadow-calm-color);
 }

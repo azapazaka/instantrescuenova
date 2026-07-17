@@ -4,17 +4,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        shell: "#F6F7F2",
-        ink: "#172126",
-        muted: "#66756F",
-        line: "#DDE4DC",
-        spruce: "#214E46",
-        teal: "#1D8A78",
-        mint: "#DCEFE6",
-        ai: "#5368C7",
-        aisoft: "#E7EBFF",
-        amber: "#B87910",
-        emergency: "#B23A35"
+        shell: "rgb(var(--color-shell) / <alpha-value>)",
+        ink: "rgb(var(--color-ink) / <alpha-value>)",
+        muted: "rgb(var(--color-muted) / <alpha-value>)",
+        line: "rgb(var(--color-line) / <alpha-value>)",
+        spruce: "rgb(var(--color-spruce) / <alpha-value>)",
+        teal: "rgb(var(--color-teal) / <alpha-value>)",
+        mint: "rgb(var(--color-mint) / <alpha-value>)",
+        ai: "rgb(var(--color-ai) / <alpha-value>)",
+        aisoft: "rgb(var(--color-aisoft) / <alpha-value>)",
+        amber: "rgb(var(--color-amber) / <alpha-value>)",
+        emergency: "rgb(var(--color-emergency) / <alpha-value>)"
       },
       fontFamily: {
         sans: ["Aptos", "Segoe UI", "system-ui", "sans-serif"],
