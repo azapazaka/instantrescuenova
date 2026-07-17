@@ -1,0 +1,30 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "frontend/dist",
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60,
+      "excludeFiles": "{backend/tests/**,backend/.venv/**,backend/*.db,backend/*.sqlite,backend/ml/data/**,frontend/node_modules/**,frontend/dist/**,test-pdfs/**}"
+    }
+  },
+  "env": {
+    "APP_ENV": "production",
+    "DATABASE_URL": "sqlite:////tmp/instant_rescue.db",
+    "SUPABASE_URL": "https://xvujfxwdzlfkatozoesm.supabase.co",
+    "SUPABASE_ANON_KEY": "sb_publishable_dwxGpf8zCFgRwdvXQuPhfQ_2YZQX9VA",
+    "VITE_SUPABASE_URL": "https://xvujfxwdzlfkatozoesm.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "sb_publishable_dwxGpf8zCFgRwdvXQuPhfQ_2YZQX9VA",
+    "TELEGRAM_POLLING_ENABLED": "false"
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

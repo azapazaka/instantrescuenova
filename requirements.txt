@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+sqlalchemy>=2
+pydantic
+pydantic-settings
+python-multipart
+httpx
+pyjwt[crypto]
+psycopg[binary]
+pypdf
+groq

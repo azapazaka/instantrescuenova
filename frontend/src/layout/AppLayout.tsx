@@ -20,31 +20,43 @@ export function AppLayout() {
   const email = session?.user.email ?? "";
 
   return (
-    <div className="min-h-screen pb-24 lg:pb-0">
-      <header className="sticky top-0 z-30 border-b border-line bg-shell/90 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:h-20 lg:px-8">
-          <NavLink to="/" className="flex shrink-0 items-center gap-3">
+    <div className="min-h-screen pb-28 lg:pb-32">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <Outlet />
+      </main>
+
+      <p className="mx-auto max-w-7xl px-4 pb-4 text-center text-sm text-muted sm:px-6 lg:px-8">
+        Instant Rescue не ставит диагноз и не заменяет врача.
+      </p>
+
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 shadow-calm backdrop-blur">
+        <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto] items-center gap-1 px-1 py-1 sm:px-3 lg:grid-cols-[auto_1fr_auto] lg:gap-4 lg:px-8 lg:py-3">
+          <NavLink to="/" className="hidden shrink-0 items-center gap-3 lg:flex">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-spruce text-white">
               <HeartPulse className="h-6 w-6" />
             </div>
             <span className="font-display text-2xl font-semibold text-ink">Instant Rescue</span>
           </NavLink>
 
-          {/* Desktop navigation. On mobile this collapses to the bottom bar. */}
-          <nav className="hidden items-center gap-1 lg:flex" aria-label="Основная навигация">
-            {nav.map(({ to, label, icon: Icon }) => (
+          <nav
+            className="grid min-w-0 grid-cols-5 gap-1 lg:flex lg:items-center lg:justify-center"
+            aria-label="Основная навигация"
+          >
+            {nav.map(({ to, label, shortLabel, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
                 end={to === "/"}
+                aria-label={label}
                 className={({ isActive }) =>
-                  `flex min-h-12 items-center gap-2 rounded-xl px-4 text-base font-extrabold transition ${
-                    isActive ? "bg-spruce text-white" : "text-muted hover:bg-ink/5 hover:text-ink"
+                  `flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[11px] font-extrabold transition lg:min-h-12 lg:flex-row lg:gap-2 lg:px-4 lg:text-base ${
+                    isActive ? "bg-mint text-spruce lg:bg-spruce lg:text-white" : "text-muted hover:bg-ink/5 hover:text-ink"
                   }`
                 }
               >
-                <Icon className="h-5 w-5" aria-hidden="true" />
-                {label}
+                <Icon className="h-6 w-6 lg:h-5 lg:w-5" aria-hidden="true" />
+                <span className="truncate lg:hidden">{shortLabel}</span>
+                <span className="hidden lg:inline">{label}</span>
               </NavLink>
             ))}
           </nav>
@@ -53,23 +65,23 @@ export function AppLayout() {
             <button
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
-              className="flex min-h-12 items-center gap-2 rounded-xl border border-line bg-white px-3 font-extrabold text-ink"
+              className="flex min-h-14 min-w-14 items-center justify-center rounded-lg border border-line bg-white px-2 font-extrabold text-ink lg:min-h-12 lg:min-w-0 lg:justify-start lg:gap-2 lg:rounded-xl lg:px-3"
               aria-expanded={menuOpen}
               aria-haspopup="menu"
+              aria-label="Аккаунт"
             >
-              <UserRound className="h-5 w-5 text-teal" aria-hidden="true" />
-              <span className="hidden max-w-40 truncate text-sm sm:inline">{email}</span>
+              <UserRound className="h-6 w-6 text-teal lg:h-5 lg:w-5" aria-hidden="true" />
+              <span className="hidden max-w-40 truncate text-sm lg:inline">{email}</span>
             </button>
 
             {menuOpen ? (
               <>
-                {/* Click-away layer, so the menu closes without a global listener. */}
                 <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} aria-hidden="true" />
                 <div
                   role="menu"
-                  className="absolute right-0 z-20 mt-2 w-60 rounded-xl border border-line bg-white p-2 shadow-calm"
+                  className="absolute bottom-full right-0 z-20 mb-2 w-60 rounded-xl border border-line bg-white p-2 shadow-calm"
                 >
-                  <p className="truncate px-3 py-2 text-sm text-muted sm:hidden">{email}</p>
+                  <p className="truncate px-3 py-2 text-sm text-muted">{email}</p>
                   <NavLink
                     to="/profile"
                     role="menuitem"
@@ -93,39 +105,7 @@ export function AppLayout() {
             ) : null}
           </div>
         </div>
-      </header>
-
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <Outlet />
-      </main>
-
-      <p className="mx-auto max-w-7xl px-4 pb-4 text-center text-sm text-muted sm:px-6 lg:px-8">
-        Instant Rescue не ставит диагноз и не заменяет врача.
-      </p>
-
-      {/* No horizontal padding: five columns already consume the full 375px on
-          the narrowest phones, and padding pushed the grid past the viewport. */}
-      <nav
-        className="fixed bottom-0 left-0 right-0 z-30 grid grid-cols-5 border-t border-line bg-white/95 py-1 shadow-calm backdrop-blur lg:hidden"
-        aria-label="Мобильная навигация"
-      >
-        {nav.map(({ to, label, shortLabel, icon: Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === "/"}
-            aria-label={label}
-            className={({ isActive }) =>
-              `flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-extrabold ${
-                isActive ? "bg-mint text-spruce" : "text-muted"
-              }`
-            }
-          >
-            <Icon className="h-6 w-6" aria-hidden="true" />
-            {shortLabel}
-          </NavLink>
-        ))}
-      </nav>
+      </div>
     </div>
   );
 }

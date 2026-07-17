@@ -11,6 +11,7 @@ frontend/vite.config.js
 frontend/vite.config.d.ts
 .DS_Store
 coverage/
+test-pdfs/
 
 # Derived from MIT-BIH; regenerate with `python -m ml.dataset`.
 # The trained artifacts in ml/artifacts/ ARE committed, so a fresh clone runs
