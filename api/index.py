@@ -7,6 +7,8 @@ BACKEND = ROOT / "backend"
 sys.path.insert(0, str(BACKEND))
 
 os.environ.setdefault("APP_ENV", "production")
+if os.environ.get("VERCEL") and not os.environ.get("DATABASE_URL"):
+    raise RuntimeError("DATABASE_URL must be configured in Vercel production environment")
 os.environ.setdefault("DATABASE_URL", "sqlite:////tmp/instant_rescue.db")
 os.environ.setdefault("SUPABASE_URL", "https://xvujfxwdzlfkatozoesm.supabase.co")
 os.environ.setdefault("SUPABASE_ANON_KEY", "sb_publishable_dwxGpf8zCFgRwdvXQuPhfQ_2YZQX9VA")
