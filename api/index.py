@@ -13,3 +13,20 @@ os.environ.setdefault("SUPABASE_ANON_KEY", "sb_publishable_dwxGpf8zCFgRwdvXQuPhf
 os.environ.setdefault("TELEGRAM_POLLING_ENABLED", "false")
 
 from app.main import app  # noqa: E402
+
+DIST = ROOT / "frontend" / "dist"
+if not DIST.exists():
+    DIST = ROOT / "app" / "frontend" / "dist"
+
+if DIST.exists():
+    from fastapi.responses import FileResponse  # noqa: E402
+    from fastapi.staticfiles import StaticFiles  # noqa: E402
+
+    assets = DIST / "assets"
+    if assets.exists():
+        app.mount("/assets", StaticFiles(directory=assets), name="assets")
+
+    @app.get("/", include_in_schema=False)
+    @app.get("/{path:path}", include_in_schema=False)
+    def serve_spa(path: str = ""):
+        return FileResponse(DIST / "index.html")
