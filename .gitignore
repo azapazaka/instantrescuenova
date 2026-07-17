@@ -17,3 +17,6 @@ test-pdfs/
 # The trained artifacts in ml/artifacts/ ARE committed, so a fresh clone runs
 # with the real model without waiting on a PhysioNet download.
 backend/ml/data/
+.vercel/
+.env.local
+.env.*.local
