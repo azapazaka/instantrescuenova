@@ -22,6 +22,11 @@ function getInitialTheme(): Theme {
 function applyTheme(theme: Theme) {
   document.documentElement.classList.toggle("dark", theme === "dark");
   document.documentElement.style.colorScheme = theme;
+  document
+    .querySelectorAll<HTMLLinkElement>("[data-theme-icon]")
+    .forEach((link) => {
+      link.href = theme === "dark" ? "/brand-icon-dark.png" : "/brand-icon-light.png";
+    });
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

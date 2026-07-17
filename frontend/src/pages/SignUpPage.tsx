@@ -1,8 +1,9 @@
-import { HeartPulse, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
+import { BrandIcon } from "../components/BrandIcon";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../services/api";
@@ -89,9 +90,7 @@ export function SignUpPage() {
       <ThemeToggle className="fixed right-4 top-4 z-20" />
       <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-5 py-10">
         <div className="mb-7 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-spruce text-white">
-            <HeartPulse className="h-9 w-9" />
-          </div>
+          <BrandIcon className="mx-auto mb-4 h-20 w-20" />
           <h1 className="font-display text-4xl font-semibold text-ink">Регистрация</h1>
         </div>
 

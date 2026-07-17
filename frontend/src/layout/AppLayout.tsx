@@ -2,6 +2,7 @@ import { Activity, FileText, HeartPulse, Home, LogOut, ShieldCheck, UserRound } 
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 
+import { BrandIcon } from "../components/BrandIcon";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -33,9 +34,7 @@ export function AppLayout() {
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 shadow-calm backdrop-blur">
         <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto] items-center gap-1 px-1 py-1 sm:px-3 lg:grid-cols-[auto_1fr_auto] lg:gap-4 lg:px-8 lg:py-3">
           <NavLink to="/" className="hidden shrink-0 items-center gap-3 lg:flex">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-spruce text-white">
-              <HeartPulse className="h-6 w-6" />
-            </div>
+            <BrandIcon className="h-11 w-11 rounded-xl" />
             <span className="font-display text-2xl font-semibold text-ink">Instant Rescue</span>
           </NavLink>
 

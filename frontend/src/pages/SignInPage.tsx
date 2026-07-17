@@ -1,8 +1,9 @@
-import { HeartPulse, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
+import { BrandIcon } from "../components/BrandIcon";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../services/supabase";
@@ -38,9 +39,7 @@ export function SignInPage() {
       <ThemeToggle className="fixed right-4 top-4 z-20" />
       <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-5 py-10">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-spruce text-white">
-            <HeartPulse className="h-9 w-9" />
-          </div>
+          <BrandIcon className="mx-auto mb-4 h-20 w-20" />
           <h1 className="font-display text-4xl font-semibold text-ink">Instant Rescue</h1>
           <p className="mt-3 text-lg leading-7 text-muted">
             Наблюдение за пульсом и помощь близких рядом.

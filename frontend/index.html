@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Instant Rescue</title>
+    <link rel="icon" type="image/png" href="/brand-icon-light.png" data-theme-icon />
+    <link rel="apple-touch-icon" href="/brand-icon-light.png" data-theme-icon />
     <script>
       (function () {
         try {
@@ -15,6 +17,9 @@
               : "light";
           document.documentElement.classList.toggle("dark", theme === "dark");
           document.documentElement.style.colorScheme = theme;
+          document.querySelectorAll("[data-theme-icon]").forEach(function (link) {
+            link.href = theme === "dark" ? "/brand-icon-dark.png" : "/brand-icon-light.png";
+          });
         } catch (_) {}
       })();
     </script>
