@@ -11,3 +11,8 @@ frontend/vite.config.js
 frontend/vite.config.d.ts
 .DS_Store
 coverage/
+
+# Derived from MIT-BIH; regenerate with `python -m ml.dataset`.
+# The trained artifacts in ml/artifacts/ ARE committed, so a fresh clone runs
+# with the real model without waiting on a PhysioNet download.
+backend/ml/data/

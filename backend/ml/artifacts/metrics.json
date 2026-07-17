@@ -1,0 +1,47 @@
+{
+  "windows": 1639,
+  "patients": 48,
+  "abnormal_rate": 0.16656497864551556,
+  "split": "GroupShuffleSplit by patient record, test_size=0.3, seed=42",
+  "isolation_forest_roc_auc": 0.8808452916398943,
+  "classifier_roc_auc": 0.901352894981081,
+  "operating_threshold": 0.05,
+  "threshold_rationale": "max F2 on held-out patients; recall weighted 2x precision",
+  "classifier_report": {
+    "normal": {
+      "precision": 0.9389830508474576,
+      "recall": 0.7959770114942529,
+      "f1-score": 0.8615863141524106,
+      "support": 348.0
+    },
+    "abnormal": {
+      "precision": 0.6682242990654206,
+      "recall": 0.8881987577639752,
+      "f1-score": 0.7626666666666667,
+      "support": 161.0
+    },
+    "accuracy": 0.825147347740668,
+    "macro avg": {
+      "precision": 0.803603674956439,
+      "recall": 0.842087884629114,
+      "f1-score": 0.8121264904095387,
+      "support": 509.0
+    },
+    "weighted avg": {
+      "precision": 0.8533403022484242,
+      "recall": 0.825147347740668,
+      "f1-score": 0.830297388326861,
+      "support": 509.0
+    }
+  },
+  "feature_importances": {
+    "mean_hr": 0.17628466086894012,
+    "min_hr": 0.02683563881638252,
+    "max_hr": 0.09316620220939051,
+    "sdnn": 0.08480060185370977,
+    "rmssd": 0.02921689736458674,
+    "pnn50": 0.5476998928422989,
+    "hr_range": 0.02711036038695678,
+    "hr_trend_slope": 0.014885745657734638
+  }
+}

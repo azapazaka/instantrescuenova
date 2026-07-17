@@ -1,133 +1,370 @@
-# Caspian Care
+# Instant Rescue
 
-Caspian Care is a frontend-first health-tech MVP for personalized daily guidance, ECG PDF explanation, and fall-detection safety alerts.
+Наблюдение за пульсом пожилого человека, объяснимая оценка ритма и мгновенное
+уведомление близких при падении.
 
-## Overview
+> **Instant Rescue не ставит диагноз и не заменяет врача.** Система помогает
+> человеку заметить изменения и подготовить вопросы специалисту. Финальное
+> решение всегда принимает человек и его врач.
 
-The product is built as a monorepo:
+---
 
-- `backend/` - FastAPI, SQLAlchemy 2.x, SQLite, mock AI provider, PDF validation, safety incident flow.
-- `frontend/` - React, TypeScript, Vite, Tailwind CSS, TanStack Query, Lucide icons.
+## 1. Проблема
 
-The default mode is safe demo mode. AI output is deterministic mock data and is clearly marked as `Demo AI Mode`.
+Пожилые люди в Казахстане — самая уязвимая группа по сердечно-сосудистым
+заболеваниям. По данным ВОЗ, ССЗ — причина примерно **32% всех смертей в мире**
+(19,8 млн человек в 2022 году), и большинство преждевременных смертей можно было
+предотвратить ранним выявлением факторов риска.
 
-## Core Features
+Три конкретные точки отказа, которые мы закрываем:
 
-### AI Health Recommendations
+1. **Ухудшение замечают поздно.** Мерцательная аритмия часто проходит без
+   симптомов. Человек узнаёт о ней уже после инсульта. Между приёмами у врача
+   пульс никто не смотрит.
+2. **Результаты анализов непонятны.** Пожилой человек получает PDF с цифрами и
+   не понимает, что с ними делать до следующего визита к врачу.
+3. **Падение = потерянное время.** Падение может быть следствием инсульта.
+   Человек лежит один, а близкие не знают об этом часами.
 
-Users fill a health profile and a daily check-in. The backend stores both, runs the mock AI provider, validates structured data through Pydantic schemas, and returns a daily plan with readiness, movement, recovery, sleep, nutrition, things to avoid, and safety notes.
+## 2. Пользователь и сценарий
 
-### ECG PDF Analysis
+**Основной пользователь:** пожилой человек (65+), который живёт один или
+частично самостоятельно.
+**Второй пользователь:** его близкий (сын, дочь, супруг), который получает
+уведомления.
 
-Users upload a PDF manually and click `Начать анализ`. The backend validates extension, MIME type, size, page count, and PDF readability. It extracts text where possible and stores only the structured analysis result, not the original PDF.
+Сценарий:
 
-### Fall Detection
+1. Пожилой человек открывает приложение и видит свой пульс сейчас.
+2. Система оценивает ритм окнами по 5 минут и объясняет, **какие именно
+   показатели** отклонились от нормы и насколько.
+3. Раз в день он заполняет короткую форму — получает план на день со ссылками на
+   рекомендации ВОЗ/AHA/ESC.
+4. Загружает PDF с анализами — получает объяснение простым языком и советы по
+   питанию и активности.
+5. Если датчик фиксирует падение — близкий получает сообщение в Telegram со
+   временем события и пульсом на момент падения.
 
-The Safety page supports emergency contacts, Telegram pairing code UX, demo devices, incident history, and a `Simulate Fall` action. Demo simulation calls the backend and creates a real `FallIncident` through the same safety service used by device events.
+## 3. Измеримый результат
 
-## Local Development
+| Что | Как измеряем |
+|---|---|
+| Раннее выявление аритмии | Модель ловит **88,8%** аномальных окон на пациентах, которых не видела при обучении |
+| Понятность вывода | Каждая оценка объясняется 3 факторами с указанием вклада в % |
+| Проверяемость совета | Каждая рекомендация ссылается на конкретный документ ВОЗ/AHA/ESC |
+| Скорость реакции на падение | Уведомление близкому в Telegram за секунды вместо часов |
 
-Backend:
+---
 
-```powershell
-cd C:\instantrescuenova\backend
+## 4. Архитектура
+
+```
+backend/          FastAPI + SQLAlchemy 2
+  app/core/       конфиг, БД, проверка JWT Supabase
+  app/api/        REST-эндпоинты
+  app/services/   бизнес-логика (пульс, ML, RAG, LLM, Telegram)
+  ml/             датасет и обучение моделей
+  rag_corpus/     16 выдержек из рекомендаций ВОЗ/AHA/ESC
+frontend/         React 18 + TypeScript + Vite + Tailwind + TanStack Query
+```
+
+Аутентификация — **Supabase Auth** (ES256 JWT, проверка через JWKS).
+База данных — **Supabase Postgres** (или SQLite для локальной разработки).
+
+---
+
+## 5. AI/ML-компонент
+
+Мы намеренно используем **три разных механизма**, потому что они решают разные
+задачи и ни один из них не справляется в одиночку.
+
+### 5.1. ML-модель: выявление аномального ритма
+
+**Данные:** [MIT-BIH Arrhythmia Database v1.0.0](https://physionet.org/content/mitdb/1.0.0/)
+(PhysioNet, лицензия ODC-BY 1.0) — 48 получасовых записей ЭКГ от 47 пациентов с
+поразрядной разметкой кардиологов.
+
+**Что именно берём:** не сырой сигнал ЭКГ, а **аннотации ударов** → ряд
+RR-интервалов (время между ударами). Причина: RR-интервалы — это то, что реально
+может выдать бытовой пульсометр, поэтому модель перенесётся на наше железо.
+Модель, обученная на форме волны ЭКГ 360 Гц, на браслет не перенеслась бы.
+
+**Признаки** (окно из 128 ударов, `app/services/features.py` — один и тот же код
+на обучении и в проде, чтобы не было train/serve skew):
+
+| Признак | Смысл |
+|---|---|
+| `mean_hr`, `min_hr`, `max_hr`, `hr_range` | уровень и разброс пульса |
+| `sdnn` | общая вариабельность ритма |
+| `rmssd` | краткосрочная вариабельность |
+| `pnn50` | доля «неровных» интервалов — ключевой маркер мерцательной аритмии |
+| `hr_trend_slope` | тренд пульса внутри окна |
+
+**Модели:**
+
+- `IsolationForest` — обучен **только на нормальных окнах**, отвечает на вопрос
+  «непохоже на здоровый ритм?». Именно он оценивает живых пользователей, у
+  которых нет разметки.
+- `GradientBoostingClassifier` — обучен на разметке, даёт честные метрики и
+  важности признаков для объяснения.
+
+**Разделение выборки:** `GroupShuffleSplit` **по пациентам**, не случайно.
+Случайное разделение положило бы окна одного человека и в train, и в test —
+модель запомнила бы его «почерк» сердца, и все метрики оказались бы завышенными.
+
+**Метрики на 15 пациентах, которых модель не видела:**
+
+```
+Окон: 1639, пациентов: 48, доля аномальных: 16.7%
+
+IsolationForest    ROC-AUC 0.881
+GradientBoosting   ROC-AUC 0.901   (порог 0.05)
+
+               precision  recall  f1
+    normal        0.939   0.796  0.862
+    abnormal      0.668   0.888  0.763
+    accuracy                     0.825
+```
+
+**Почему порог 0.05, а не 0.5.** Это скрининг. Пропустить аритмию (false
+negative) хуже, чем лишний раз посоветовать показать показатели врачу (false
+positive). Порог выбран по максимуму **F2** (recall важнее precision в 2 раза).
+При стандартном пороге 0.5 recall был бы 0.503 — модель пропускала бы половину
+аномальных окон. Мы сознательно платим точностью за полноту.
+
+### 5.2. Клинические правила: частота пульса
+
+В MIT-BIH почти нет устойчивой тахикардии (6 окон из 1639), поэтому модель не
+может научиться, что пульс покоя 110 — это важно. При тестировании она оценивала
+такое окно как «норма». Частоту пульса не нужно выучивать — её границы давно
+установлены клинически, поэтому это **правила** (`RATE_RULES` в
+`app/services/anomaly.py`), а модель делает то, чего правила не умеют, — ловит
+нерегулярность ритма.
+
+### 5.3. LLM + RAG: рекомендации со ссылками
+
+- **LLM:** Groq `llama-3.3-70b-versatile` в JSON-режиме.
+- **RAG:** 16 выдержек из рекомендаций ВОЗ, AHA и ESC, вручную перенесённые из
+  первоисточников в `backend/rag_corpus/` (у каждой — YAML-заголовок с URL).
+- **Поиск:** семантический по векторам. Эмбеддинги —
+  `paraphrase-multilingual-MiniLM-L12-v2` (384 измерения, работает локально и
+  бесплатно, понимает русский), хранятся в **Supabase pgvector**, поиск по
+  косинусной близости с HNSW-индексом. На SQLite (тесты, локальный запуск без
+  модели) автоматически используется лексический поиск — он возвращает те же
+  реальные выдержки с теми же ссылками, просто ранжирует грубее. Режим виден в
+  логе при старте: `[rag] indexed 16 chunks (vector mode)`.
+- **Защита от выдуманных ссылок:** модели передаются выдержки с `id`, и она
+  указывает `source_ids`. Всё, что не пришло из корпуса, отбрасывается в
+  `_resolve_sources`. Модель физически не может сослаться на несуществующий
+  документ.
+- **Валидация:** ответ проверяется теми же схемами Pydantic. Невалидный ответ →
+  повтор → откат на детерминированный mock. Приложение не падает и не показывает
+  «полуответ».
+
+Системный промпт запрещает ставить диагноз, назначать и отменять лекарства и
+требует при признаках неотложного состояния сначала сказать вызвать скорую.
+
+---
+
+## 6. Explainability
+
+Оценка «anomaly score 0.71» бесполезна для пожилого человека. Поэтому каждая
+оценка сопровождается разбором:
+
+- **Какие данные повлияли** — вклад каждого признака в процентах.
+- **Насколько отклонились** — «pNN50 выше вашей нормы на 63% (75 против 12)».
+- **С чем сравниваем** — интерфейс прямо говорит: «норма здорового взрослого»
+  или «ваша личная норма» (когда накопится история).
+- **Где система может ошибаться** — «модель видит только пульс и не знает о
+  лекарствах, температуре и эмоциях».
+- **Кто решает** — «итоговое решение всегда за вами и вашим врачом».
+
+**Метод атрибуции:** отклонение признака от базовой линии (z-score),
+взвешенное важностью признака из обученного классификатора, нормированное по
+окну. Это приближение первого порядка, **не SHAP** — оно честно показывает,
+*какие входы сдвинулись*, и достаточно дёшево, чтобы считаться на каждом окне.
+
+---
+
+## 7. Данные: источники, обработка, ограничения
+
+### Источники
+
+| Источник | Что берём | Лицензия |
+|---|---|---|
+| [MIT-BIH Arrhythmia DB](https://physionet.org/content/mitdb/1.0.0/) | RR-интервалы и разметка ритма | ODC-BY 1.0 |
+| [ВОЗ: ССЗ](https://www.who.int/news-room/fact-sheets/detail/cardiovascular-diseases-(cvds)), [гипертензия](https://www.who.int/news-room/fact-sheets/detail/hypertension), [соль](https://www.who.int/news-room/fact-sheets/detail/sodium-reduction), [активность](https://www.who.int/publications/i/item/9789240015128) | выдержки для RAG | © WHO, цитирование |
+| [AHA: питание и образ жизни](https://www.heart.org/en/healthy-living/healthy-eating/eat-smart/nutrition-basics/aha-diet-and-lifestyle-recommendations) | выдержки для RAG | © AHA, цитирование |
+| [ESC: фибрилляция предсердий 2024](https://www.escardio.org/guidelines/clinical-practice-guidelines/all-esc-practice-guidelines/atrial-fibrillation/) | выдержки для RAG | © ESC, цитирование |
+| Симулятор пульса | живой поток для демо | наш код |
+
+### Обработка
+
+1. Из аннотаций MIT-BIH берутся только удары (символы `NLRejAaJSVEF/fQ`);
+   неударные метки (шум, смена ритма) в ряд RR не попадают.
+2. RR = разница отсчётов / частота дискретизации × 1000 мс.
+3. Фильтр физиологической правдоподобности: 250 мс ≤ RR ≤ 3000 мс.
+4. Окна по 128 ударов с шагом 64 (перекрытие 50%).
+5. Окно размечается по ритму **среднего удара**; окна с неизвестным ритмом
+   отбрасываются.
+6. Окна короче 10 интервалов отбрасываются — неполное окно даёт уверенно
+   выглядящий мусор.
+
+### Ограничения (важно)
+
+- **MIT-BIH — не пожилые.** Возраст испытуемых не совпадает с нашей целевой
+  группой, метаданные грубые.
+- **База специально насыщена аритмиями** (16,7% аномальных окон) — это не
+  распространённость в обычной популяции.
+- **RR из экспертной разметки чище**, чем RR с оптического датчика на запястье.
+  Реальный шум датчика мы моделируем отдельно, а не выучиваем отсюда.
+- **BPM → RR — приближение** (`60000/bpm`). Годится для признаков тренда и
+  вариабельности, не годится для анализа на уровне отдельных ударов.
+- **Базовая линия популяции из MIT-BIH не подходит для объяснения** здоровому
+  пользователю: её «нормальные» окна взяты у аритмических пациентов и имеют
+  завышенный pNN50 (~26% против ~12% у здорового). Поэтому для объяснений
+  используется отдельная здоровая базовая линия, а MIT-BIH — только для обучения
+  классификатора. Это реальная проблема, найденная при тестировании.
+- **Данные пульса в демо — симуляция.** Каждое измерение сохраняется с
+  `source="simulated"`, и интерфейс это показывает.
+
+---
+
+## 8. Запуск
+
+### Требования
+
+- Python **3.10+** (проверено на 3.12)
+- Node.js 18+
+- Проект Supabase (бесплатный тариф)
+
+### 8.1. Backend
+
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+cp ../.env.example .env            # затем заполните .env (см. ниже)
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Frontend:
+Проверка: <http://127.0.0.1:8000/api/health>
 
-```powershell
-cd C:\instantrescuenova\frontend
+### 8.2. Frontend
+
+```bash
+cd frontend
 npm install
+cp .env.example .env               # VITE_SUPABASE_URL и VITE_SUPABASE_ANON_KEY
 npm run dev
 ```
 
-Open:
+Откройте <http://127.0.0.1:5173>. Vite проксирует `/api` на `127.0.0.1:8000`.
 
-```text
-http://127.0.0.1:5173
+### 8.3. Обучение модели (опционально)
+
+Репозиторий работает и без обученной модели — она откатывается на объяснение по
+базовой линии. Чтобы обучить:
+
+```bash
+cd backend
+python -m ml.dataset     # скачивает MIT-BIH с PhysioNet (~2-3 минуты)
+python -m ml.train       # обучает и печатает метрики
 ```
 
-The Vite dev server proxies `/api` to `http://127.0.0.1:8000`.
+Артефакты появятся в `backend/ml/artifacts/`.
 
-## Environment Variables
+### 8.4. Переменные окружения
 
-Copy `.env.example` to `.env` for backend configuration.
+| Переменная | Зачем |
+|---|---|
+| `DATABASE_URL` | SQLite локально или строка Supabase **Session pooler**. Драйвер — `postgresql+psycopg://`, а не `postgresql://` |
+| `SUPABASE_URL` | для проверки JWT через JWKS |
+| `GROQ_API_KEY` | ключ с <https://console.groq.com/keys>. **Пусто → mock-режим** |
+| `HR_SOURCE` | `simulated` (демо) или `device` (реальный датчик) |
+| `TELEGRAM_BOT_TOKEN` | токен от [@BotFather](https://t.me/BotFather) |
 
-Important variables:
+### 8.5. Telegram-бот
 
-- `AI_MODE=mock` - default deterministic demo AI mode.
-- `DATABASE_URL=sqlite:///./caspian_care.db` - local SQLite database.
-- `MAX_PDF_UPLOAD_MB=20` - ECG PDF upload limit.
-- `MAX_ECG_PDF_PAGES=10` - max ECG PDF pages.
-- `TELEGRAM_BOT_TOKEN=` - optional real Telegram integration credential.
-- `DEVICE_EVENT_COOLDOWN_SECONDS=60` - prevents duplicate alert storms.
-- `ENABLE_DEMO_MODE=true` - enables `/api/demo/simulate-fall`.
+1. Создайте бота у [@BotFather](https://t.me/BotFather), получите токен.
+2. Положите токен в `backend/.env` → `TELEGRAM_BOT_TOKEN`.
+3. Укажите имя бота в `TELEGRAM_BOT_USERNAME`. Фронтенд берёт его из
+   `/api/health`, дублировать в UI не нужно.
+4. Перезапустите backend — воркер подключения запустится сам.
+5. На странице «Безопасность» добавьте контакт и передайте близкому код
+   `/start XXXXXX`.
 
-## AI Real Mode
+Мы используем **long polling**, а не webhook: вебхуку нужен публичный HTTPS-URL,
+то есть туннель, который отваливается посреди демо. `getUpdates` работает с
+ноутбука на конференционном Wi-Fi без настройки.
 
-The app currently ships with a mock provider and a clean service boundary in `backend/app/services/ai.py`. To connect real AI, add a real provider implementation behind the same methods:
+### 8.6. Тесты
 
-- `generate_health_recommendation(...)`
-- `analyze_ecg_document(...)`
-
-Keep API keys only on the backend and validate structured output before saving.
-
-## Telegram Pairing
-
-When a contact is created, the backend generates a pairing code such as `ABC123`. The UI shows:
-
-```text
-/start ABC123
+```bash
+cd backend && python -m pytest tests -q     # 59 тестов
+cd frontend && npm run build
 ```
 
-A future Telegram bot webhook should match that code, save `telegram_chat_id`, and set the contact status to `connected`.
+---
 
-## Device API
+## 9. API для железа
 
-Create a device from the Safety UI or:
-
-```http
-POST /api/devices
-```
-
-Future ESP32/wearable hardware should call:
+Датчик падения аутентифицируется собственным токеном (не сессией пользователя):
 
 ```http
 POST /api/devices/{device_id}/fall-events
-Authorization: Bearer DEVICE_SECRET
+Authorization: Bearer <DEVICE_SECRET>
 Content-Type: application/json
-```
 
-```json
 {
-  "event_timestamp": "2026-07-15T18:42:00Z",
+  "event_timestamp": "2026-07-17T18:42:00Z",
   "confidence": 0.91,
-  "sensor_data": {
-    "freefall_g": 0.32,
-    "impact_g": 3.1,
-    "stillness_std": 0.08
-  }
+  "sensor_data": {"freefall_g": 0.32, "impact_g": 3.1, "stillness_std": 0.08}
 }
 ```
 
-The backend validates the token, checks duplicate/cooldown rules, creates an incident, and attempts notifications.
+Пульс с датчика:
 
-## Testing
+```http
+POST /api/heart-rate
+Authorization: Bearer <SUPABASE_JWT>
 
-Backend:
-
-```powershell
-python -m pytest backend/tests -q
+{"readings": [{"bpm": 72, "source": "device", "measured_at": "2026-07-17T18:42:00Z"}]}
 ```
 
-Frontend:
+Переключение `HR_SOURCE=device` останавливает симулятор. Контракт API не
+меняется — железо просто начинает присылать данные вместо генератора.
 
-```powershell
-cd frontend
-npm run build
-```
+---
 
-## Medical Safety Disclaimer
+## 10. Безопасность и приватность
 
-Caspian Care provides AI-assisted explanations and lifestyle guidance. It does not diagnose disease, prescribe medication, cancel medication, or replace professional medical care.
+- Каждый запрос проверяет JWT Supabase через JWKS; `user_id` берётся из
+  подписанного токена, а не из тела запроса.
+- RLS включён на всех таблицах и привязан к `auth.uid()`.
+- Загруженный PDF **не сохраняется** — хранится только структурированный разбор.
+- Токен устройства хранится только в виде SHA-256 хеша; сам секрет показывается
+  один раз.
+- Уведомления о доставке честные: если Telegram не ответил, интерфейс покажет
+  «не доставлено», а не «отправлено».
+
+---
+
+## 11. Дальнейшие шаги
+
+1. Подключить реальный датчик (ESP32 + пульсометр + акселерометр).
+2. Персональная базовая линия вместо популяционной после 7 дней истории.
+3. Расширить корпус клиническими протоколами МЗ РК (rcrz.kz).
+4. Валидация на данных пожилых людей (MIT-BIH — не наша возрастная группа).
+5. Казахский язык интерфейса.
+6. Оценка врачом: сравнить флаги системы с заключениями кардиолога.
+
+## 12. Медицинский дисклеймер
+
+Instant Rescue предоставляет объяснения и рекомендации по образу жизни на основе
+открытых клинических руководств. Система **не диагностирует заболевания, не
+назначает и не отменяет лекарства и не заменяет профессиональную медицинскую
+помощь**. При признаках неотложного состояния (боль в груди, одышка в покое,
+обморок, признаки инсульта) немедленно вызывайте скорую помощь — **103**.

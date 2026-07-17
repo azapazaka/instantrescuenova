@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from io import BytesIO
+from typing import Optional
 
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
@@ -7,7 +10,7 @@ from app.core.config import Settings
 from app.core.errors import ApiError
 
 
-def validate_pdf_upload(filename: str, content_type: str | None, data: bytes, settings: Settings) -> tuple[str, int]:
+def validate_pdf_upload(filename: str, content_type: Optional[str], data: bytes, settings: Settings) -> tuple[str, int]:
     if not filename.lower().endswith(".pdf") or content_type not in {
         "application/pdf",
         "application/x-pdf",
@@ -22,7 +25,7 @@ def validate_pdf_upload(filename: str, content_type: str | None, data: bytes, se
     try:
         reader = PdfReader(BytesIO(data))
         page_count = len(reader.pages)
-        if page_count > settings.max_ecg_pdf_pages:
+        if page_count > settings.max_pdf_pages:
             raise ApiError(400, "TOO_MANY_PAGES", "PDF содержит слишком много страниц для MVP-анализа.")
         text = "\n".join(page.extract_text() or "" for page in reader.pages)
     except ApiError:

@@ -1,9 +1,32 @@
+# API
 fastapi
 uvicorn[standard]
 sqlalchemy>=2
 pydantic
 pydantic-settings
 python-multipart
-pypdf
-pytest
 httpx
+
+# Auth (Supabase JWT verification via JWKS)
+pyjwt[crypto]
+
+# Database
+psycopg[binary]
+
+# Documents
+pypdf
+
+# AI
+groq
+sentence-transformers
+
+# ML
+scikit-learn
+numpy
+joblib
+
+# Dataset build (only needed to run ml/dataset.py)
+wfdb
+
+# Tests
+pytest
