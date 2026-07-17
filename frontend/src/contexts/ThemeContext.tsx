@@ -25,7 +25,7 @@ function applyTheme(theme: Theme) {
   document
     .querySelectorAll<HTMLLinkElement>("[data-theme-icon]")
     .forEach((link) => {
-      link.href = theme === "dark" ? "/brand-icon-dark.png" : "/brand-icon-light.png";
+      link.href = theme === "dark" ? "/assets/brand-icon-dark.png" : "/assets/brand-icon-light.png";
     });
 }
 
