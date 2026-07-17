@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BellRing, Check, Copy, Plus, Radio, ShieldCheck, Trash2, X } from "lucide-react";
+import { BellRing, Check, Copy, Plus, Radio, Send, ShieldCheck, Trash2, X } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
@@ -104,9 +104,19 @@ export function SafetyPage() {
     addContact.mutate(contactForm);
   }
 
-  async function copyCode(id: number, code: string) {
-    await navigator.clipboard.writeText(`/start ${code}`);
+  function getInviteLink(code: string) {
+    return `https://t.me/${botUsername}?start=${code}`;
+  }
+
+  function getShareLink(contactName: string, inviteLink: string) {
+    const text = `${contactName}, подключитесь к Instant Rescue, чтобы получать уведомления о падении.`;
+    return `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(text)}`;
+  }
+
+  async function copyInvite(id: number, inviteLink: string) {
+    await navigator.clipboard.writeText(inviteLink);
     setCopied(id);
+    toast.success("Ссылка приглашения скопирована");
     setTimeout(() => setCopied(null), 2000);
   }
 
@@ -240,33 +250,41 @@ export function SafetyPage() {
                     </p>
                   ) : telegramConfigured && botUsername ? (
                     <div className="mt-4 rounded-xl bg-ink p-4 text-white">
-                      <p className="text-sm leading-6">
-                        Попросите близкого открыть{" "}
-                        <a
-                          className="font-black underline"
-                          href={`https://t.me/${botUsername}?start=${contact.pairing_code}`}
-                          target="_blank"
-                          rel="noreferrer noopener"
-                        >
-                          @{botUsername}
-                        </a>{" "}
-                        и отправить:
-                      </p>
-                      <div className="mt-3 flex items-center justify-between gap-3 rounded-lg bg-white/10 p-3">
-                        <code className="text-xl font-black">/start {contact.pairing_code}</code>
-                        <button
-                          type="button"
-                          onClick={() => copyCode(contact.id, contact.pairing_code)}
-                          className="shrink-0 rounded-lg bg-white/15 p-2 hover:bg-white/25"
-                          aria-label="Скопировать код"
-                        >
-                          {copied === contact.id ? (
-                            <Check className="h-5 w-5" aria-hidden="true" />
-                          ) : (
-                            <Copy className="h-5 w-5" aria-hidden="true" />
-                          )}
-                        </button>
-                      </div>
+                      {(() => {
+                        const inviteLink = getInviteLink(contact.pairing_code);
+                        return (
+                          <>
+                            <p className="text-sm leading-6 text-white/85">
+                              Отправьте близкому приглашение в Telegram. Ему останется нажать
+                              Start у <strong className="text-white">@{botUsername}</strong>, и контакт
+                              подключится автоматически.
+                            </p>
+                            <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+                              <a
+                                className="btn btn-primary flex-1 justify-center"
+                                href={getShareLink(contact.name, inviteLink)}
+                                target="_blank"
+                                rel="noreferrer noopener"
+                              >
+                                <Send className="h-5 w-5" aria-hidden="true" />
+                                Отправить приглашение
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => copyInvite(contact.id, inviteLink)}
+                                className="btn bg-white/15 text-white hover:bg-white/25"
+                              >
+                                {copied === contact.id ? (
+                                  <Check className="h-5 w-5" aria-hidden="true" />
+                                ) : (
+                                  <Copy className="h-5 w-5" aria-hidden="true" />
+                                )}
+                                {copied === contact.id ? "Скопировано" : "Скопировать ссылку"}
+                              </button>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   ) : (
                     <p className="mt-3 rounded-lg bg-amber/10 p-3 text-sm font-bold leading-6 text-amber">
