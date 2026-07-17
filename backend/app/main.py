@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import health_documents, heart_rate, profile, recommendations, safety
+from app.api import health_documents, heart_rate, profile, recommendations, safety, telegram
 from app.core.config import get_settings
 from app.core.database import Base, SessionLocal, engine
 from app.core.errors import api_error_response
@@ -66,7 +66,10 @@ def health():
         ai_mode=settings.ai_mode,
         app_env=settings.app_env,
         telegram_bot_username=settings.telegram_bot_username,
-        telegram_configured=bool(settings.telegram_bot_token),
+        telegram_configured=bool(
+            settings.telegram_bot_token
+            and (settings.telegram_polling_enabled or settings.telegram_webhook_secret)
+        ),
     )
 
 
@@ -75,3 +78,4 @@ app.include_router(recommendations.router)
 app.include_router(health_documents.router)
 app.include_router(heart_rate.router)
 app.include_router(safety.router)
+app.include_router(telegram.router)

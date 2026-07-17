@@ -68,6 +68,30 @@ async def _reply(client: httpx.AsyncClient, token: str, chat_id: str, text: str)
         )
 
 
+async def reply(token: str, chat_id: str, text: str) -> None:
+    async with httpx.AsyncClient(timeout=10) as client:
+        await _reply(client, token, chat_id, text)
+
+
+def handle_update(update: dict) -> tuple[Optional[str], Optional[str]]:
+    message = update.get("message") or {}
+    text = (message.get("text") or "").strip()
+    chat = message.get("chat") or {}
+    if not text.startswith("/start"):
+        return None, None
+
+    chat_id = str(chat.get("id"))
+    parts = text.split(maxsplit=1)
+    if len(parts) < 2:
+        return (
+            chat_id,
+            "Здравствуйте! Отправьте код из приложения Instant Rescue "
+            "в формате: /start ВАШКОД",
+        )
+
+    return chat_id, _handle_start(parts[1].strip(), chat_id, chat.get("username"))
+
+
 async def _poll_loop(token: str) -> None:
     offset = 0
     async with httpx.AsyncClient(timeout=POLL_TIMEOUT + 10) as client:
@@ -86,27 +110,10 @@ async def _poll_loop(token: str) -> None:
 
                 for update in payload.get("result", []):
                     offset = update["update_id"] + 1
-                    message = update.get("message") or {}
-                    text = (message.get("text") or "").strip()
-                    chat = message.get("chat") or {}
-                    if not text.startswith("/start"):
-                        continue
-
-                    parts = text.split(maxsplit=1)
-                    chat_id = str(chat.get("id"))
-                    if len(parts) < 2:
-                        await _reply(
-                            client, token, chat_id,
-                            "Здравствуйте! Отправьте код из приложения Instant Rescue "
-                            "в формате: /start ВАШКОД",
-                        )
-                        continue
-
                     # DB work is sync; keep it off the event loop.
-                    reply = await asyncio.to_thread(
-                        _handle_start, parts[1].strip(), chat_id, chat.get("username")
-                    )
-                    await _reply(client, token, chat_id, reply)
+                    chat_id, reply_text = await asyncio.to_thread(handle_update, update)
+                    if chat_id and reply_text:
+                        await _reply(client, token, chat_id, reply_text)
 
             except asyncio.CancelledError:
                 print("[telegram] pairing worker stopped")

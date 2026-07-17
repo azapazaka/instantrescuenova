@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     telegram_bot_token: str = ""
     telegram_bot_username: str = "InstantRescueBot"
     telegram_polling_enabled: bool = True
+    telegram_webhook_secret: str = ""
 
     # Safety
     device_event_cooldown_seconds: int = 60

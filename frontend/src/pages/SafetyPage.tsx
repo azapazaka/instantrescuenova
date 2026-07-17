@@ -12,7 +12,7 @@ import { formatDate, formatTime } from "../utils/format";
 /** Delivery status, worded so a failure reads as a failure. */
 const notificationLabel: Record<string, string> = {
   no_contacts: "некому отправить",
-  not_configured: "Telegram не подключен",
+  not_configured: "уведомления недоступны",
   sent: "доставлено",
   partially_failed: "доставлено не всем",
   failed: "не доставлено"
@@ -111,8 +111,8 @@ export function SafetyPage() {
   }
 
   const connected = contacts.data?.filter((contact) => contact.status === "connected").length ?? 0;
-  const botUsername = health.data?.telegram_bot_username ?? "";
   const telegramConfigured = health.data?.telegram_configured ?? false;
+  const botUsername = telegramConfigured ? health.data?.telegram_bot_username ?? "" : "";
 
   return (
     <section>
@@ -131,9 +131,9 @@ export function SafetyPage() {
         <div className="mb-5 flex items-start gap-3 rounded-2xl border-2 border-amber/40 bg-amber/10 p-4">
           <X className="mt-0.5 h-5 w-5 shrink-0 text-amber" aria-hidden="true" />
           <p className="text-base leading-7 text-amber">
-            <strong>Telegram-бот не настроен на сервере.</strong> Уведомления о падении
-            сейчас никому не придут. Добавьте <code>TELEGRAM_BOT_TOKEN</code> в{" "}
-            <code>backend/.env</code> и перезапустите сервер.
+            <strong>Telegram-уведомления временно недоступны.</strong> Контакты и
+            устройства можно добавить сейчас; отправка уведомлений включится
+            автоматически после подключения бота.
           </p>
         </div>
       ) : null}
@@ -143,12 +143,14 @@ export function SafetyPage() {
           <ShieldCheck className="mb-3 h-8 w-8 text-teal" aria-hidden="true" />
           <p className="text-sm font-extrabold uppercase tracking-wide text-teal">Статус</p>
           <h2 className="mt-2 text-2xl font-black text-ink">
-            {connected > 0 ? "Защита активна" : "Подключите Telegram"}
+            {connected > 0 ? "Защита активна" : telegramConfigured ? "Подключите Telegram" : "Уведомления готовятся"}
           </h2>
           <p className="mt-2 text-sm leading-6 text-muted">
             {connected > 0
               ? "Близкие получат уведомление о падении."
-              : "Пока никто не получит уведомление о падении."}
+              : telegramConfigured
+                ? "Пока никто не получит уведомление о падении."
+                : "Пока падения записываются в журнал без отправки в Telegram."}
           </p>
         </div>
         <div className="card rounded-2xl p-5">
@@ -236,7 +238,7 @@ export function SafetyPage() {
                       <Check className="h-4 w-4" aria-hidden="true" />
                       Telegram подключен — уведомления придут сюда.
                     </p>
-                  ) : (
+                  ) : telegramConfigured && botUsername ? (
                     <div className="mt-4 rounded-xl bg-ink p-4 text-white">
                       <p className="text-sm leading-6">
                         Попросите близкого открыть{" "}
@@ -266,6 +268,10 @@ export function SafetyPage() {
                         </button>
                       </div>
                     </div>
+                  ) : (
+                    <p className="mt-3 rounded-lg bg-amber/10 p-3 text-sm font-bold leading-6 text-amber">
+                      Контакт сохранён. Код подключения станет доступен после включения Telegram-уведомлений.
+                    </p>
                   )}
 
                   <div className="mt-3 flex flex-wrap gap-2">
